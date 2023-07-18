@@ -40,7 +40,7 @@ let
   ];
 in pkgs.mkShell {
   name = "space-station-14-devshell";
-  buildInputs = [ pkgs.gtk3 ];
+  buildInputs = with pkgs; [ gtk3 omnisharp-roslyn python3 ];
   packages = dependencies;
   shellHook = ''
     export GLIBC_TUNABLES=glibc.rtld.dynamic_sort=1

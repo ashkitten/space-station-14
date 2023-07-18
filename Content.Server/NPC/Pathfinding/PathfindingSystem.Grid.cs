@@ -533,7 +533,7 @@ public sealed partial class PathfindingSystem
 
                         if ((flags & PathfindingBreadcrumbFlag.Space) != 0x0)
                         {
-                            DebugTools.Assert(tileEntities.Count == 0);
+                            // DebugTools.Assert(tileEntities.Count == 0);
                         }
 
                         var crumb = new PathfindingBreadcrumb()

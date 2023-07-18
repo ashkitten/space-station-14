@@ -118,8 +118,129 @@
 #    - !type:TargetAccessibleCon
 #      curve: !type:BoolCurve
 
+- type: utilityQuery
+  id: NearbyCowTools
+  query:
+    - !type:ComponentQuery
+      components:
+        - type: CowTool
+  considerations:
+    - !type:RandomCon
+      curve: !type:PresetCurve
+        preset: Linear
+    - !type:TargetAccessibleCon
+      curve: !type:BoolCurve
+    - !type:TargetInLOSCon
+      curve: !type:BoolCurve
+
+- type: utilityQuery
+  id: NearbyAnchorable
+  query:
+    - !type:ComponentQuery
+      components:
+        - type: Anchorable
+  considerations:
+    - !type:RandomCon
+      curve: !type:PresetCurve
+        preset: Linear
+    - !type:TargetAccessibleCon
+      curve: !type:BoolCurve
+    - !type:TargetInLOSCon
+      curve: !type:BoolCurve
+
+- type: utilityQuery
+  id: NearbyCuttable
+  query:
+    - !type:ComponentQuery
+      components:
+        - type: Cable
+  considerations:
+    - !type:RandomCon
+      curve: !type:PresetCurve
+        preset: Linear
+    - !type:TargetAccessibleCon
+      curve: !type:BoolCurve
+    - !type:TargetInLOSCon
+      curve: !type:BoolCurve
+
+- type: utilityQuery
+  id: NearbyWeldable
+  query:
+    - !type:ComponentQuery
+      components:
+        - type: Weldable
+        - type: WelderRefinable
+        - type: Repairable
+  considerations:
+    - !type:RandomCon
+      curve: !type:PresetCurve
+        preset: Linear
+    - !type:TargetAccessibleCon
+      curve: !type:BoolCurve
+    - !type:TargetInLOSCon
+      curve: !type:BoolCurve
+
+- type: utilityQuery
+  id: NearbyPryable
+  query:
+    - !type:ComponentQuery
+      components:
+        - type: FloorTile
+        # - type: MechAssembly
+        - type: Door
+        - type: Toilet
+  considerations:
+    - !type:RandomCon
+      curve: !type:PresetCurve
+        preset: Linear
+    - !type:TargetAccessibleCon
+      curve: !type:BoolCurve
+    - !type:TargetInLOSCon
+      curve: !type:BoolCurve
+
+- type: utilityQuery
+  id: NearbyScrewable
+  query:
+    - !type:ComponentQuery
+      components:
+        - type: WiresPanel
+        - type: LogicGate
+        # - type: FaxMachine
+  considerations:
+    - !type:RandomCon
+      curve: !type:PresetCurve
+        preset: Linear
+    - !type:TargetAccessibleCon
+      curve: !type:BoolCurve
+    - !type:TargetInLOSCon
+      curve: !type:BoolCurve
+
+- type: utilityQuery
+  id: NearbyWeldingFuel
+  query:
+    - !type:ComponentQuery
+      components:
+        - type: DrainableSolution
+    - !type:SolutionFilter
+      solution: tank
+      reagents:
+        - WeldingFuel
+  considerations:
+    - !type:RandomCon
+      curve: !type:PresetCurve
+        preset: Linear
+    - !type:TargetAccessibleCon
+      curve: !type:BoolCurve
+    - !type:TargetInLOSCon
+      curve: !type:BoolCurve
 
 # Presets
+- type: utilityCurvePreset
+  id: Linear
+  curve: !type:QuadraticCurve
+    slope: 1
+    exponent: 1
+
 - type: utilityCurvePreset
   id: TargetDistance
   curve: !type:QuadraticCurve

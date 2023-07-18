@@ -24,6 +24,7 @@
     speed: 0.05
   - type: Item
     sprite: Objects/Tools/Cowtools/haycutters.rsi
+  - type: CowTool
 
 - type: entity
   name: moodriver
@@ -48,6 +49,7 @@
     useSound:
       collection: Screwdriver
     speed: 0.05
+  - type: CowTool
 
 - type: entity
   name: wronch
@@ -72,6 +74,7 @@
     useSound:
       path: /Audio/Items/ratchet.ogg
     speed: 0.05
+  - type: CowTool
 
 - type: entity
   name: cowbar
@@ -98,6 +101,7 @@
       path: /Audio/Items/crowbar.ogg
     speed: 0.05
   - type: TilePrying
+  - type: CowTool
 
 - type: entity
   name: mooltitool
@@ -116,6 +120,7 @@
   - type: Tag
     tags:
       - Multitool
+  - type: CowTool
 
 - type: entity
   name: cowelding tool
@@ -135,6 +140,7 @@
       types: # When lit, negate standard melee damage and replace with heat
         Heat: 0.5
         Blunt: -5
+  - type: CowTool
 
 - type: entity
   name: milkalyzer
@@ -152,6 +158,7 @@
     - key: enum.GasAnalyzerUiKey.Key
       type: GasAnalyzerBoundUserInterface
   - type: Appearance
+  - type: CowTool
 
 - type: entity
   name: cow toolbox

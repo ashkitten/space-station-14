@@ -9,15 +9,21 @@ using Content.Server.NPC.Queries.Queries;
 using Content.Server.Nutrition.Components;
 using Content.Server.Nutrition.EntitySystems;
 using Content.Server.Storage.Components;
+using Content.Shared.Chemistry.Components;
 using Content.Shared.Examine;
 using Content.Shared.Fluids.Components;
 using Content.Shared.Hands.Components;
+using Content.Shared.Interaction;
 using Content.Shared.Mobs.Systems;
+using Content.Shared.Physics;
+using Content.Shared.SubFloor;
 using Content.Shared.Weapons.Ranged.Components;
 using Content.Shared.Weapons.Ranged.Events;
 using Robust.Server.Containers;
+using Robust.Server.GameObjects;
 using Robust.Shared.Collections;
 using Robust.Shared.Prototypes;
+using Robust.Shared.Random;
 
 namespace Content.Server.NPC.Systems;
 
@@ -33,6 +39,8 @@ public sealed class NPCUtilitySystem : EntitySystem
     [Dependency] private readonly FoodSystem _food = default!;
     [Dependency] private readonly MobStateSystem _mobState = default!;
     [Dependency] private readonly PuddleSystem _puddle = default!;
+    [Dependency] private readonly IRobustRandom _random = default!;
+    [Dependency] private readonly SharedInteractionSystem _interactionSystem = default!;
     [Dependency] private readonly SharedTransformSystem _transform = default!;
     [Dependency] private readonly SolutionContainerSystem _solutions = default!;
 
@@ -144,6 +152,14 @@ public sealed class NPCUtilitySystem : EntitySystem
             }
             case TargetAccessibleCon:
             {
+                if (TryComp<SubFloorHideComponent>(targetUid, out SubFloorHideComponent? subFloor))
+                {
+                    if (subFloor.IsUnderCover && subFloor.BlockInteractions)
+                    {
+                        return 0.0f;
+                    }
+                }
+
                 if (_container.TryGetContainingContainer(targetUid, out var container))
                 {
                     if (TryComp<EntityStorageComponent>(container.Owner, out var storageComponent))
@@ -254,6 +270,10 @@ public sealed class NPCUtilitySystem : EntitySystem
             {
                 return _mobState.IsDead(targetUid) ? 1f : 0f;
             }
+            case RandomCon:
+            {
+                return _random.NextFloat();
+            }
             default:
                 throw new NotImplementedException();
         }
@@ -279,6 +299,7 @@ public sealed class NPCUtilitySystem : EntitySystem
     {
         var owner = blackboard.GetValue<EntityUid>(NPCBlackboard.Owner);
         var vision = blackboard.GetValueOrDefault<float>(NPCBlackboard.VisionRadius, EntityManager);
+        var reach = blackboard.GetValueOrDefault<float>("InteractRange", EntityManager);
 
         switch (query)
         {
@@ -319,6 +340,19 @@ public sealed class NPCUtilitySystem : EntitySystem
                     entities.Add(ent);
                 }
                 break;
+            case InReachQuery:
+                foreach (var ent in _lookup.GetEntitiesInRange(owner, reach, LookupFlags.Dynamic | LookupFlags.Static))
+                {
+                    if (!_interactionSystem.InRangeUnobstructed(owner, ent, reach, CollisionGroup.MobMask))
+                        continue;
+                    if (EntityManager.TryGetComponent(ent, out VisibilityComponent? vis) && vis.Layer != 1)
+                        continue;
+                    if (EntityManager.TryGetComponent(ent, out SubFloorHideComponent? subFloor) && subFloor.IsUnderCover)
+                        continue;
+
+                    entities.Add(ent);
+                }
+                break;
             default:
                 throw new NotImplementedException();
         }
@@ -326,33 +360,54 @@ public sealed class NPCUtilitySystem : EntitySystem
 
     private void Filter(NPCBlackboard blackboard, HashSet<EntityUid> entities, UtilityQueryFilter filter)
     {
+        var toRemove = new ValueList<EntityUid>();
+
         switch (filter)
         {
             case PuddleFilter:
             {
                 var puddleQuery = GetEntityQuery<PuddleComponent>();
 
-                var toRemove = new ValueList<EntityUid>();
-
                 foreach (var ent in entities)
                 {
                     if (!puddleQuery.TryGetComponent(ent, out var puddleComp) ||
-                        !_solutions.TryGetSolution(ent, puddleComp.SolutionName, out var sol) ||
+                        !_solutions.TryGetSolution(ent, puddleComp.SolutionName, out Solution? sol) ||
                         _puddle.CanFullyEvaporate(sol))
                     {
                         toRemove.Add(ent);
                     }
                 }
 
-                foreach (var ent in toRemove)
+                break;
+            }
+            case SolutionFilter:
+            {
+                foreach (var ent in entities)
                 {
-                    entities.Remove(ent);
-                }
+                    if (!_solutions.TryGetSolution(ent, ((SolutionFilter) filter).Solution, out Solution? sol))
+                    {
+                        toRemove.Add(ent);
+                        continue;
+                    }
 
+                    foreach (string reagent in ((SolutionFilter) filter).Reagents)
+                    {
+                        if (!sol.ContainsReagent(reagent))
+                        {
+                            toRemove.Add(ent);
+                            continue;
+                        }
+                    }
+                }
                 break;
             }
             default:
                 throw new NotImplementedException();
+        }
+
+        foreach (EntityUid ent in toRemove)
+        {
+            entities.Remove(ent);
         }
     }
 }

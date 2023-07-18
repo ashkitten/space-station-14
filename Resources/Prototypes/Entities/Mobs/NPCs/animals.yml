@@ -469,10 +469,11 @@
     factions:
     - Passive
   - type: Body
-    prototype: AnimalRuminant
+    prototype: AnimalCow
+  - type: Hands
   - type: HTN
     rootTask:
-      task: RuminantCompound
+      task: CowCompound
   - type: GuideHelp
     guides:
     - Chef

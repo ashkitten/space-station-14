@@ -1,0 +1,134 @@
+- type: htnCompound
+  id: CowCompound
+  branches:
+  - tasks:
+    - !type:HTNCompoundTask
+      task: UseCowToolsCompound
+    preconditions:
+      - !type:HoldingToolPrecondition
+  - tasks:
+    - !type:HTNCompoundTask
+      task: FindCowToolsCompound
+    preconditions:
+      - !type:EmptyHandPrecondition
+  - tasks:
+    - !type:HTNCompoundTask
+      task: FoodCompound
+  - tasks:
+    - !type:HTNCompoundTask
+      task: FollowCompound
+  - tasks:
+    - !type:HTNCompoundTask
+      task: IdleCompound
+
+- type: htnCompound
+  id: FindCowToolsCompound
+  branches:
+    - tasks:
+      - !type:HTNPrimitiveTask
+        operator: !type:DropItemOperator
+      preconditions:
+        - !type:HoldingToolPrecondition
+    - tasks:
+      - !type:HTNPrimitiveTask
+        operator: !type:UtilityOperator
+          proto: NearbyCowTools
+      - !type:HTNPrimitiveTask
+        operator: !type:MoveToOperator
+          pathfindInPlanning: true
+          removeKeyOnFinish: false
+          rangeKey: InteractRange
+      - !type:HTNPrimitiveTask
+        preconditions:
+          - !type:TargetInRangePrecondition
+            targetKey: Target
+            rangeKey: InteractRange
+        operator: !type:InteractWithOperator
+          targetKey: Target
+
+- type: htnCompound
+  id: UseCowToolsCompound
+  branches:
+    # find anchorable
+    - tasks:
+      - !type:HTNPrimitiveTask
+        operator: !type:UtilityOperator
+          proto: NearbyAnchorable
+      - !type:HTNCompoundTask
+        task: UseToolCompound
+      preconditions:
+        - !type:HoldingToolPrecondition
+          qualities:
+            - Anchoring
+
+    # find weldable
+    - tasks:
+      - !type:HTNPrimitiveTask
+        operator: !type:UtilityOperator
+          proto: NearbyWeldable
+      - !type:HTNCompoundTask
+        task: UseToolCompound
+      preconditions:
+        - !type:HoldingToolPrecondition
+          qualities:
+            - Welding
+        - !type:HoldingReagentsPrecondition
+          solution: Welder
+          reagents:
+            - WeldingFuel
+
+- type: htnCompound
+  id: UseToolCompound
+  branches:
+    # turn on welder when target acquired
+    - tasks:
+      - !type:HTNPrimitiveTask
+        operator: !type:UseInHandOperator
+      preconditions:
+        - !type:KeyExistsPrecondition
+          key: Target
+        - !type:HoldingToolPrecondition
+          qualities:
+            - Welding
+        - !type:HoldingReagentsPrecondition
+          solution: Welder
+          reagents:
+            - WeldingFuel
+        - !type:NotPrecondition
+          precondition: !type:WelderLitPrecondition
+        - !type:TargetInRangePrecondition
+          targetKey: Target
+          rangeKey: InteractRange
+
+    # turn off welder when done
+    - tasks:
+      - !type:HTNPrimitiveTask
+        operator: !type:UseInHandOperator
+      preconditions:
+        - !type:NotPrecondition
+          precondition: !type:KeyExistsPrecondition
+            key: Target
+        - !type:WelderLitPrecondition
+
+    # move to target and use tool
+    - tasks:
+      - !type:HTNPrimitiveTask
+        operator: !type:MoveToOperator
+          pathfindInPlanning: true
+          removeKeyOnFinish: false
+          targetKey: TargetCoordinates
+          pathfindKey: TargetPathfind
+          rangeKey: InteractRange
+      - !type:HTNPrimitiveTask
+        preconditions:
+          - !type:TargetInRangePrecondition
+            targetKey: Target
+            rangeKey: InteractRange
+        operator: !type:InteractWithOperator
+          targetKey: Target
+      - !type:HTNPrimitiveTask
+        operator: !type:WaitDoAfterOperator
+      preconditions:
+        - !type:KeyExistsPrecondition
+          key: Target
+

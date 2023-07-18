@@ -22,8 +22,4 @@
           operator: !type:AltInteractOperator
 
         - !type:HTNPrimitiveTask
-          preconditions:
-            - !type:KeyExistsPrecondition
-              key: IdleTime
-          operator: !type:WaitOperator
-            key: IdleTime
+          operator: !type:WaitDoAfterOperator
